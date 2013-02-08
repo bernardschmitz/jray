@@ -29,10 +29,10 @@ public class RayToken {
 
 	public Sphere nextSphere() {
 
-		final Vector pos = nextVector();
+		final Vector3 pos = nextVector();
 		final double r = nextDouble();
-		final Vector dc = nextVector();
-		final Vector sc = nextVector();
+		final Vector3 dc = nextVector();
+		final Vector3 sc = nextVector();
 		final double ka = nextDouble();
 		final double kd = nextDouble();
 		final double ks = nextDouble();
@@ -44,16 +44,16 @@ public class RayToken {
 	}
 
 	public Light nextLight() {
-		final Vector pos = nextVector();
-		final Vector col = nextVector();
+		final Vector3 pos = nextVector();
+		final Vector3 col = nextVector();
 		return new Light(pos, col);
 	}
 
-	public Vector nextVector() {
+	public Vector3 nextVector() {
 		final double x = nextDouble();
 		final double y = nextDouble();
 		final double z = nextDouble();
-		return new Vector(x, y, z);
+		return new Vector3(x, y, z);
 	}
 
 	public int nextInt() {

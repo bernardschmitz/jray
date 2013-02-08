@@ -9,13 +9,13 @@ import java.util.List;
 
 public class RayTracer {
 
-	private Vector background;
-	private Vector ambientLight;
+	private Vector3 background;
+	private Vector3 ambientLight;
 	private List<Sphere> objects = new ArrayList<Sphere>();
 	private List<Light> lights = new ArrayList<Light>();
-	private Vector eye;
-	private Vector at;
-	private Vector sky;
+	private Vector3 eye;
+	private Vector3 at;
+	private Vector3 sky;
 	private double dis;
 	private double fov;
 	private int width;
@@ -26,15 +26,15 @@ public class RayTracer {
 	private long reflectionrays;
 	private long refractionrays;
 
-	public RayTracer(final Vector eye, final Vector at, final Vector sky, final double dis,
+	public RayTracer(final Vector3 eye, final Vector3 at, final Vector3 sky, final double dis,
 			final double fov, final int width, final int height, final int maxDepth,
-			final Vector ambientLight, final Vector background) {
+			final Vector3 ambientLight, final Vector3 background) {
 		super();
 		this.background = background;
 		this.ambientLight = ambientLight;
 		this.eye = eye;
 		this.at = at;
-		this.sky = Vector.norm(sky);
+		this.sky = Vector3.norm(sky);
 		this.dis = dis;
 		this.fov = fov;
 		this.width = width;
@@ -58,7 +58,7 @@ public class RayTracer {
 		lights.add(light);
 	}
 
-	public Vector traceRay(final Ray ray, final int depth) {
+	public Vector3 traceRay(final Ray ray, final int depth) {
 
 		totalrays++;
 
@@ -81,50 +81,50 @@ public class RayTracer {
 			return background;
 		}
 
-		final Ray r = new Ray(Vector.add(ray.getBase(), Vector.sMul(ray.getDir(), mt)), ray
+		final Ray r = new Ray(Vector3.add(ray.getBase(), Vector3.sMul(ray.getDir(), mt)), ray
 				.getDir());
-		final Vector normal = Vector.norm(Vector.sub(r.getBase(), o.getCenter()));
+		final Vector3 normal = Vector3.norm(Vector3.sub(r.getBase(), o.getCenter()));
 
 		return shade(o, r, normal, depth + 1);
 	}
 
-	private Vector shade(final Sphere object, final Ray ray, final Vector normal, final int depth) {
+	private Vector3 shade(final Sphere object, final Ray ray, final Vector3 normal, final int depth) {
 
 		// return object.getDcolor();
-		Vector intensity = Vector
-				.mul(Vector.sMul(object.getDcolor(), object.getKa()), ambientLight);
+		Vector3 intensity = Vector3
+				.mul(Vector3.sMul(object.getDcolor(), object.getKa()), ambientLight);
 
 		for (final Light light : lights) {
-			final Ray shad = new Ray(ray.getBase(), Vector.norm(Vector.sub(light.getPosition(), ray
+			final Ray shad = new Ray(ray.getBase(), Vector3.norm(Vector3.sub(light.getPosition(), ray
 					.getBase())));
-			final double nl = Vector.dot(normal, shad.getDir());
+			final double nl = Vector3.dot(normal, shad.getDir());
 			if (nl > 0.0) {
-				Vector inter = light.getColor();
+				Vector3 inter = light.getColor();
 
 				for (final Sphere s : objects) {
 					shadowrays++;
 					final double t = s.intersect(shad);
 					if (t > 0.0) {
 						if (s.getTransmit() > 0.0) {
-							inter = Vector.add(Vector.sMul(inter, s.getTransmit()), Vector.sMul(s
+							inter = Vector3.add(Vector3.sMul(inter, s.getTransmit()), Vector3.sMul(s
 									.getDcolor(), 1.0 - s.getTransmit()));
 						} else {
-							inter = new Vector(0.0, 0.0, 0.0);
+							inter = new Vector3(0.0, 0.0, 0.0);
 							break;
 						}
 					}
 				}
 
-				intensity = Vector.add(intensity, Vector.sMul(
-						Vector.mul(inter, object.getDcolor()), object.getKd() * nl));
+				intensity = Vector3.add(intensity, Vector3.sMul(
+						Vector3.mul(inter, object.getDcolor()), object.getKd() * nl));
 
 				if (object.getKs() > 0.0) {
-					final Vector reflect = Vector.norm(Vector.sub(Vector.sMul(normal, 2.0 * nl),
+					final Vector3 reflect = Vector3.norm(Vector3.sub(Vector3.sMul(normal, 2.0 * nl),
 							shad.getDir()));
-					final Vector view = Vector.norm(Vector.sub(eye, ray.getBase()));
-					intensity = Vector.add(intensity, Vector.sMul(Vector.mul(inter, object
+					final Vector3 view = Vector3.norm(Vector3.sub(eye, ray.getBase()));
+					intensity = Vector3.add(intensity, Vector3.sMul(Vector3.mul(inter, object
 							.getScolor()), object.getKs()
-							* Math.pow(Vector.dot(reflect, view), object.getN())));
+							* Math.pow(Vector3.dot(reflect, view), object.getN())));
 				}
 			}
 		}
@@ -133,10 +133,10 @@ public class RayTracer {
 
 			if (object.getReflect() > 0.0) {
 				reflectionrays++;
-				final double nl = Vector.dot(normal, ray.getDir());
-				final Ray reflect = new Ray(ray.getBase(), Vector.norm(Vector.sub(ray.getDir(),
-						Vector.sMul(normal, 2.0 * nl))), object);
-				intensity = Vector.add(intensity, Vector.sMul(traceRay(reflect, depth + 1), object
+				final double nl = Vector3.dot(normal, ray.getDir());
+				final Ray reflect = new Ray(ray.getBase(), Vector3.norm(Vector3.sub(ray.getDir(),
+						Vector3.sMul(normal, 2.0 * nl))), object);
+				intensity = Vector3.add(intensity, Vector3.sMul(traceRay(reflect, depth + 1), object
 						.getKs()
 						* object.getReflect()));
 			}
@@ -145,19 +145,19 @@ public class RayTracer {
 				refractionrays++;
 				if (object.getIor() > 0.0) {
 					final double n = 1.0 / object.getIor();
-					final double c = Vector.dot(Vector.negate(ray.getDir()), normal);
+					final double c = Vector3.dot(Vector3.negate(ray.getDir()), normal);
 					double nl = 1.0 - n * n * (1.0 - c * c);
 					if (nl >= 0.0) {
 						nl = n * c - Math.sqrt(nl);
-						final Ray refract = new Ray(ray.getBase(), Vector.norm(Vector.sub(Vector
-								.sMul(normal, nl), Vector.sMul(Vector.negate(ray.getDir()), n))),
+						final Ray refract = new Ray(ray.getBase(), Vector3.norm(Vector3.sub(Vector3
+								.sMul(normal, nl), Vector3.sMul(Vector3.negate(ray.getDir()), n))),
 								object);
-						intensity = Vector.add(intensity, Vector.sMul(traceRay(refract, depth + 1),
+						intensity = Vector3.add(intensity, Vector3.sMul(traceRay(refract, depth + 1),
 								object.getKs() * object.getTransmit()));
 					}
 				} else {
 					final Ray refract = new Ray(ray.getBase(), ray.getDir(), object);
-					intensity = Vector.add(intensity, Vector.sMul(traceRay(refract, depth + 1),
+					intensity = Vector3.add(intensity, Vector3.sMul(traceRay(refract, depth + 1),
 							object.getKs() * object.getTransmit()));
 				}
 			}
@@ -168,51 +168,51 @@ public class RayTracer {
 
 	public void rayTrace(final OutputStream out) throws IOException {
 
-		final Vector dir = Vector.norm(Vector.sub(at, eye));
-		final Vector right = Vector.norm(Vector.cross(dir, sky));
-		final Vector up = Vector.norm(Vector.cross(right, dir));
+		final Vector3 dir = Vector3.norm(Vector3.sub(at, eye));
+		final Vector3 right = Vector3.norm(Vector3.cross(dir, sky));
+		final Vector3 up = Vector3.norm(Vector3.cross(right, dir));
 
 		final double w = dis * Math.tan(fov / 2.0 * Math.PI / 180.0);
 		final double h = w * height / width;
 
-		at = Vector.add(eye, dir);
-		final Vector ww = Vector.sMul(right, w);
-		final Vector hh = Vector.sMul(up, h);
-		final Vector tl = Vector.add(Vector.sub(at, ww), hh);
-		final Vector bl = Vector.sub(Vector.sub(at, ww), hh);
-		final Vector br = Vector.sub(Vector.add(at, ww), hh);
-		final Vector tr = Vector.add(Vector.add(at, ww), hh);
+		at = Vector3.add(eye, dir);
+		final Vector3 ww = Vector3.sMul(right, w);
+		final Vector3 hh = Vector3.sMul(up, h);
+		final Vector3 tl = Vector3.add(Vector3.sub(at, ww), hh);
+		final Vector3 bl = Vector3.sub(Vector3.sub(at, ww), hh);
+		final Vector3 br = Vector3.sub(Vector3.add(at, ww), hh);
+		final Vector3 tr = Vector3.add(Vector3.add(at, ww), hh);
 
-		final Vector ld = Vector.sDiv(Vector.sub(bl, tl), height);
-		final Vector rd = Vector.sDiv(Vector.sub(br, tr), height);
+		final Vector3 ld = Vector3.sDiv(Vector3.sub(bl, tl), height);
+		final Vector3 rd = Vector3.sDiv(Vector3.sub(br, tr), height);
 
-		Vector s = tl;
-		Vector e = tr;
+		Vector3 s = tl;
+		Vector3 e = tr;
 		// char *buf = malloc(sizeof(char)*width*3);
 
 		for (int y = 0; y < height; y++) {
-			final Vector d = Vector.sDiv(Vector.sub(e, s), width);
-			Vector v = s;
+			final Vector3 d = Vector3.sDiv(Vector3.sub(e, s), width);
+			Vector3 v = s;
 			// char *p = buf;
 			for (int x = 0; x < width; x++) {
 
-				final Vector r = Vector.norm(Vector.sub(v, eye));
+				final Vector3 r = Vector3.norm(Vector3.sub(v, eye));
 				final Ray ray = new Ray(eye, r);
-				Vector c = traceRay(ray, 0);
+				Vector3 c = traceRay(ray, 0);
 
 				final double m = Math.max(Math.max(c.getX(), c.getY()), c.getZ());
 				if (m > 1.0) {
-					c = Vector.sDiv(c, m);
+					c = Vector3.sDiv(c, m);
 				}
 
 				out.write((byte) (c.getX() * 255.0));
 				out.write((byte) (c.getY() * 255.0));
 				out.write((byte) (c.getZ() * 255.0));
 
-				v = Vector.add(v, d);
+				v = Vector3.add(v, d);
 			}
-			s = Vector.add(s, ld);
-			e = Vector.add(e, rd);
+			s = Vector3.add(s, ld);
+			e = Vector3.add(e, rd);
 			// fwrite(buf, 1, width * 3, OUT);
 			// putc('.', stderr);
 			System.out.print('.');
@@ -245,9 +245,9 @@ public class RayTracer {
 
 		final RayToken tok = new RayToken(args[0]);
 
-		final Vector eye = tok.nextVector();
-		final Vector at = tok.nextVector();
-		final Vector sky = tok.nextVector();
+		final Vector3 eye = tok.nextVector();
+		final Vector3 at = tok.nextVector();
+		final Vector3 sky = tok.nextVector();
 
 		final double fov = tok.nextDouble();
 		final double d = tok.nextDouble();
@@ -257,8 +257,8 @@ public class RayTracer {
 
 		final int maxDepth = tok.nextInt();
 
-		final Vector ambient = tok.nextVector();
-		final Vector background = tok.nextVector();
+		final Vector3 ambient = tok.nextVector();
+		final Vector3 background = tok.nextVector();
 
 		final RayTracer rt = new RayTracer(eye, at, sky, d, fov, width, height, maxDepth, ambient,
 				background);

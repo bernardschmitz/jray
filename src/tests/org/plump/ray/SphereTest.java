@@ -8,15 +8,15 @@ public class SphereTest extends TestCase {
 
 	public void testIntersect() throws Exception {
 
-		final Sphere s = new Sphere(new Vector(0, 0, 0), 0.5);
-		Ray r = new Ray(new Vector(1, 0, 0), new Vector(-1, 0, 0));
+		final Sphere s = new Sphere(new Vector3(0, 0, 0), 0.5);
+		Ray r = new Ray(new Vector3(1, 0, 0), new Vector3(-1, 0, 0));
 
 		double t = s.intersect(r);
 
 		assertEquals(0.5, t, DELTA);
 
-		final Vector base = new Vector(1, 1, 0);
-		final Vector dir = Vector.norm(Vector.sub(new Vector(0, 0, 0), base));
+		final Vector3 base = new Vector3(1, 1, 0);
+		final Vector3 dir = Vector3.norm(Vector3.sub(new Vector3(0, 0, 0), base));
 
 		r = new Ray(base, dir);
 

@@ -6,9 +6,9 @@ public class Sphere {
 
 	private static long intersections = 0;
 
-	private Vector center;
-	private Vector dcolor;
-	private Vector scolor;
+	private Vector3 center;
+	private Vector3 dcolor;
+	private Vector3 scolor;
 	private double radius;
 	private double radius2;
 	private double ka;
@@ -19,15 +19,15 @@ public class Sphere {
 	private double transmit;
 	private double ior;
 
-	public Sphere(final Vector center, final double radius) {
+	public Sphere(final Vector3 center, final double radius) {
 		super();
 		this.center = center;
 		this.radius = radius;
 		radius2 = radius * radius;
 	}
 
-	public Sphere(final Vector center, final double radius, final Vector dcolor,
-			final Vector scolor, final double ka, final double kd, final double ks, final double n,
+	public Sphere(final Vector3 center, final double radius, final Vector3 dcolor,
+			final Vector3 scolor, final double ka, final double kd, final double ks, final double n,
 			final double reflect, final double transmit, final double ior) {
 		super();
 		this.center = center;
@@ -52,9 +52,9 @@ public class Sphere {
 
 		Sphere.intersections++;
 
-		final Vector q = Vector.sub(r.getBase(), center);
-		final double b = 2.0 * Vector.dot(r.getDir(), q);
-		final double c = Vector.dot(q, q) - radius2;
+		final Vector3 q = Vector3.sub(r.getBase(), center);
+		final double b = 2.0 * Vector3.dot(r.getDir(), q);
+		final double c = Vector3.dot(q, q) - radius2;
 
 		final double d = b * b - 4.0 * c;
 
@@ -95,15 +95,15 @@ public class Sphere {
 		return -1.0;
 	}
 
-	public Vector getCenter() {
+	public Vector3 getCenter() {
 		return center;
 	}
 
-	public Vector getDcolor() {
+	public Vector3 getDcolor() {
 		return dcolor;
 	}
 
-	public Vector getScolor() {
+	public Vector3 getScolor() {
 		return scolor;
 	}
 
